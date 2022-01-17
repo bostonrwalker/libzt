@@ -283,8 +283,12 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "release")
     set(BUILD_RELEASE ON)
     set(CMAKE_VERBOSE_MAKEFILE OFF)
     set(RELEASE_OPTIMIZATION "-O3")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wno-everything -w")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-everything -w")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -w")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -w")
+    if(NOT MSVC)
+        set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Wno-everything")
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wno-everything")
+    endif()
 endif()
 
 # -------------------------------------------------------------------------------
@@ -457,7 +461,11 @@ endif()
 # |                                      JNI                                   |
 # ------------------------------------------------------------------------------
 
-if(ZTS_ENABLE_JAVA OR BUILD_ANDROID)
+if(BUILD_ANDROID)
+    option(ZTS_NDK_ONLY "Use C API callbacks on Android" FALSE)
+endif()
+
+if(ZTS_ENABLE_JAVA OR (BUILD_ANDROID AND NOT ZTS_NDK_ONLY))
     message(STATUS "Looking for JNI")
 
     if(BUILD_WIN)
@@ -698,6 +706,9 @@ if(BUILD_SHARED_LIB)
 
     if(BUILD_ANDROID)
         target_link_libraries(${DYNAMIC_LIB_NAME} android log)
+        if(CMAKE_ANDROID_ARCH_ABI STREQUAL "arm64-v8a")
+            target_compile_options(zto_pic PRIVATE -march=armv8-a+crypto)
+        endif()
     endif()
     if(NOT ZTS_DISABLE_CENTRAL_API)
         target_link_libraries(${DYNAMIC_LIB_NAME} ${CURL_LIBRARIES})
