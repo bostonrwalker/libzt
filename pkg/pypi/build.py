@@ -6,7 +6,6 @@ See: https://stackoverflow.com/questions/60073711/how-to-build-c-extensions-via-
 import os
 import shutil
 import subprocess
-
 from distutils.command.build_py import build_py
 from distutils.command.build_ext import build_ext
 from distutils.errors import DistutilsPlatformError, CCompilerError, DistutilsExecError
